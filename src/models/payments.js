@@ -42,7 +42,6 @@ const paymentsSchema = new mongoose.Schema({
 // Indexes for fast queries
 paymentsSchema.index({ userId: 1 });
 paymentsSchema.index({ bookingId: 1 });
-paymentsSchema.index({ razorpayOrderId: 1 });
 paymentsSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model("payments", paymentsSchema);
