@@ -8,6 +8,7 @@ const connectDB = require("./config/database");
 // Import routes
 const portfolioRoutes = require("./routes/portfolioRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const verifyApiKey = require("./middleware/api_key_middleware");
 
 // Initialize Express
 const app = express();
@@ -16,17 +17,23 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors()); // Enable CORS for all origins
+app.use(
+  cors({
+    origin: ["https://arjunr50.github.io"],
+    methods: ["GET"],
+    allowedHeaders: ["X-API-Key"],
+  }),
+);
 app.use(express.json()); // Parse JSON bodies
 
 // Single API Route
-app.use("/api/portfolio", portfolioRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/portfolio", verifyApiKey, portfolioRoutes);
+app.use("/payment", verifyApiKey, paymentRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
   res.json({
-    message: "API is running!",
+    description: "API is running!",
     timestamp: new Date().toISOString(),
   });
 });
@@ -44,7 +51,7 @@ app.get("/health", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`,
+    description: `Route ${req.originalUrl} not found`,
   });
 });
 
@@ -52,7 +59,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
-    message: "Internal server error",
+    description: "Internal server error",
     error: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
 });

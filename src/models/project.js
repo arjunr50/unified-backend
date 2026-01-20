@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema(
   {
-    project_id: Number,
     title: String,
     description: String,
     image: [String],

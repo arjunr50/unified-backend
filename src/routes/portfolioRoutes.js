@@ -8,6 +8,6 @@ router.get("/", portfolioController.getPortfolioData);
 // Individual endpoints
 router.get("/personal", portfolioController.getPersonal);
 router.get("/projects", portfolioController.getProjects);
-router.get("/technologies", portfolioController.getTechnologies);
+router.get("/technology", portfolioController.getTechnology);
 
 module.exports = router;

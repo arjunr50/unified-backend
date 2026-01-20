@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const technologySchema = new mongoose.Schema(
   {
-    tech_id: Number,
     name: String,
     icon: String,
     category: String,

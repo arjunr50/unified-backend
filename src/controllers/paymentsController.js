@@ -25,16 +25,17 @@ exports.createOrder = async (req, res) => {
     const order = await razorpayInstance.orders.create({
       amount: amount * 100,
       currency,
-      receipt: userId && userId !== "null" && userId !== "" && userId !== null
-        ? `user_${userId}_app_${applicationId}_${Date.now()}`
-        : `app_${applicationId}_${Date.now()}`,
-      notes: { 
+      receipt:
+        userId && userId !== "null" && userId !== "" && userId !== null
+          ? `user_${userId}_app_${applicationId}_${Date.now()}`
+          : `app_${applicationId}_${Date.now()}`,
+      notes: {
         userId,
         bookingId,
         applicationId,
         name,
         email,
-        contact 
+        contact,
       },
     });
 
@@ -52,12 +53,13 @@ exports.createOrder = async (req, res) => {
         description,
         contact: contact || null,
         email: email || null,
-        coffeeMessage: coffeeMessage || null
-      }
+        coffeeMessage: coffeeMessage || null,
+      },
     });
 
     res.status(201).json({
       success: true,
+      description: "Order created successfully",
       timestamp: new Date().toISOString(),
       data: {
         order_id: order.id,
@@ -68,7 +70,7 @@ exports.createOrder = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to create order",
+      description: "Failed to create order",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
@@ -85,7 +87,7 @@ exports.verifyPayment = async (req, res) => {
     if (shasum.digest("hex") !== signature) {
       return res.status(400).json({
         success: false,
-        message: "Invalid payment signature",
+        description: "Invalid payment signature",
       });
     }
 
@@ -100,7 +102,7 @@ exports.verifyPayment = async (req, res) => {
           signature,
           updatedAt: new Date(),
         },
-        { new: true }
+        { new: true },
       ),
     ]);
 
@@ -110,20 +112,65 @@ exports.verifyPayment = async (req, res) => {
     ) {
       return res.status(500).json({
         success: false,
-        message: "Payment capture failed",
+        description: "Payment capture failed",
       });
     }
 
     res.status(200).json({
       success: true,
       timestamp: new Date().toISOString(),
-      message: "Payment verified and captured successfully",
+      description: "Payment verified and captured successfully",
       data: { payment_id, order_id },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Payment verification failed",
+      description: "Payment verification failed",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+// Get all payments (admin)
+exports.getAllPayments = async (req, res) => {
+  try {
+    const allPayments = await payments.find().sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      description: `Retrieved ${allPayments.length} payment(s)`,
+      timestamp: new Date().toISOString(),
+      count: allPayments.length,
+      data: allPayments,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      description: "Failed to retrieve payments",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+// Get payment by order ID
+exports.getPaymentByOrderId = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const paymentRecord = await payments.findOne({ razorpayOrderId: orderId });
+    if (!paymentRecord) {
+      return res.status(404).json({
+        success: false,
+        description: "Payment record not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      description: "Payment record retrieved successfully",
+      timestamp: new Date().toISOString(),
+      data: paymentRecord,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      description: "Failed to retrieve payment record",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
